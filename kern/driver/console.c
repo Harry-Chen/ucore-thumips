@@ -39,7 +39,6 @@ static bool serial_exists = 0;
 
 static void
 serial_init(void) {
-    volatile unsigned char *uart = (unsigned char*)COM1;
     if(serial_exists)
       return ;
     serial_exists = 1;
@@ -71,9 +70,8 @@ serial_putc_sub(int c) {
 #ifdef MACH_QEMU
     outb(COM1 + COM_TX, c);
 #elif defined MACH_FPGA
-    //TODO
-    while( (inw(COM1 + 0x04) & 0x01) == 0 );
-    outw(COM1 + 0x00, c & 0xFF);
+    while( (inb(COM1_STATUS) & 0x01) == 0 );
+    outb(COM1_DATA, (uint8_t) c);
 #endif
 }
 
@@ -98,10 +96,9 @@ serial_proc_data(void) {
     }
     c = inb(COM1 + COM_RX);
 #elif defined MACH_FPGA
-    //TODO
-    if( (inw(COM1 + 0x04) & 0x02) == 0)
+    if( (inb(COM1_STATUS) & 0x02) == 0)
       return -1;
-    c = inw(COM1 + 0x00) & 0xFF;
+    c = inb(COM1_DATA) & 0xFF;
 #endif
     return c;
 }

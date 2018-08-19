@@ -76,8 +76,10 @@ outw(uint32_t port, uint32_t data) {
 
 /* board specification */
 #define ISA_BASE        0xbfd00000
-#define COM1            (ISA_BASE+0x3F8)
-#define COM1_IRQ        4
+#define COM1            0xa3000000
+#define COM1_STATUS     (COM1)
+#define COM1_DATA       (COM1+0x04)
+#define COM1_IRQ        0
 
 #define TIMER0_IRQ       7
 
