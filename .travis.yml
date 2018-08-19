@@ -5,9 +5,9 @@ before_install:
   - tar -xf gcc.tgz
 
 script:
-  - make GCCPREFIX=$PWD/mips-mti-elf/2016.05-06/bin/mips-mti-elf- ON_FPGA=y -j4
-  - make GCCPREFIX=$PWD/mips-mti-elf/2016.05-06/bin/mips-mti-elf- ON_FPGA=y clean
-  - make GCCPREFIX=$PWD/mips-mti-elf/2016.05-06/bin/mips-mti-elf- ON_FPGA=n -j4
+  - make CROSS_COMPILE=$PWD/mips-mti-elf/2016.05-06/bin/mips-mti-elf- ON_FPGA=y -j4
+  - make CROSS_COMPILE=$PWD/mips-mti-elf/2016.05-06/bin/mips-mti-elf- ON_FPGA=y clean
+  - make CROSS_COMPILE=$PWD/mips-mti-elf/2016.05-06/bin/mips-mti-elf- ON_FPGA=n -j4
   - echo "Running Tests"
   - timeout 5s qemu-system-mipsel -M mipssim -m 32M -nographic -kernel obj/ucore-kernel-initrd -monitor none -serial file:test.log || true
   - cat test.log
