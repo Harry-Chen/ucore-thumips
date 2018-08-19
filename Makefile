@@ -12,12 +12,12 @@ HOSTCFLAGS	:= -g -Wall -O2
 GDB		:= $(CROSS_COMPILE)gdb
 CC      := $(CROSS_COMPILE)gcc
 LD      := $(CROSS_COMPILE)ld
-AS      := $(CROSS_COMPILE)as -EL -g -mips32
+AS      := $(CROSS_COMPILE)as -EL -g -mips32 -msoft-float
 AR      := $(CROSS_COMPILE)ar
 OBJCOPY := $(CROSS_COMPILE)objcopy
 OBJDUMP := $(CROSS_COMPILE)objdump
 
-CFLAGS	:= -mips32 -ffreestanding -fno-builtin -nostdlib -nostdinc -g -mno-abicalls -fno-pic -EL -G0 -Wall -O3
+CFLAGS	:= -msoft-float -ffreestanding -fno-builtin -nostdlib -nostdinc -g -mno-abicalls -fno-pic -EL -G0 -Wall -O0
 LDFLAGS	:= -EL -nostdlib -n -G 0 -static
 LDFLAGS_SCRIPT := $(LDFLAGS) -T tools/kernel.ld
 
@@ -83,8 +83,6 @@ BUILD_DIR   += $(USER_OBJDIR)
 
 DEPENDS := $(patsubst $(SRCDIR)/%.c, $(DEPDIR)/%.d, $(SRC))
 
-MAKEDEPEND = $(CLANG) -M $(CFLAGS) $(INCLUDES) -o $(DEPDIR)/$*.d $<
-
 .PHONY: all checkdirs clean 
 
 all: checkdirs boot/loader.bin obj/ucore-kernel-initrd
@@ -107,10 +105,10 @@ $(DEPDIR)/%.d: $(SRCDIR)/%.c
 		$(CC) -MM -MT "$(OBJDIR)/$*.o $@" $(CFLAGS) $(INCLUDES) $< > $@; 
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
-	$(CC) -c $(INCLUDES) $(CFLAGS) $(MACH_DEF) $<  -o $@
+	$(CC) -c -mips1 $(INCLUDES) $(CFLAGS) $(MACH_DEF) $<  -o $@
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.S
-	$(CC) -c -D__ASSEMBLY__ $(MACH_DEF) $(INCLUDES) $(CFLAGS) $< -o $@
+	$(CC) -c -mips32 -D__ASSEMBLY__ $(MACH_DEF) $(INCLUDES) $(CFLAGS) $< -o $@
 
 checkdirs: $(BUILD_DIR) $(DEP_DIR)
 
@@ -140,17 +138,17 @@ define make-user-app
 $1: $(BUILD_DIR) $(addsuffix .o,$1) $(USER_LIB)
 	@echo LINK $$@
 	$(LD) $(FPGA_LD_FLAGS) -T $(USER_LIB_SRCDIR)/user.ld  $(addsuffix .o,$1) $(USER_LIB) -o $$@
-	$(SED) 's/$$$$FILE/$(notdir $1)/g' tools/piggy.S.in > $(USER_OBJDIR)/piggy.S
-	$(AS) $(USER_OBJDIR)/piggy.S -o $$@.piggy.o
+	$(SED) 's/$$$$FILE/$(notdir $1)/g' tools/piggy.S.in > $(USER_OBJDIR)/piggy.$(notdir $1).S
+	$(AS) $(USER_OBJDIR)/piggy.$(notdir $1).S -o $$@.piggy.o
 endef
 
 $(foreach bdir,$(USER_APP_BINS),$(eval $(call make-user-app,$(bdir))))
 
 $(USER_OBJDIR)/%.o: $(USER_SRCDIR)/%.c
-	$(CC) -c $(USER_INCLUDE) -I$(SRCDIR)/include $(CFLAGS) $< -o $@
+	$(CC) -c -mips1 $(USER_INCLUDE) -I$(SRCDIR)/include $(CFLAGS) $< -o $@
 
 $(USER_OBJDIR)/%.o: $(USER_SRCDIR)/%.S
-	$(CC) -c -D__ASSEMBLY__ $(USER_INCLUDE) -I$(SRCDIR)/include $(CFLAGS) $< -o $@
+	$(CC) -c -mips32 -D__ASSEMBLY__ $(USER_INCLUDE) -I$(SRCDIR)/include $(CFLAGS) $< -o $@
 
 
 # filesystem
