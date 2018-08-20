@@ -79,7 +79,7 @@ outw(uint32_t port, uint32_t data) {
 #define COM1            0xa3000000
 #define COM1_STATUS     (COM1)
 #define COM1_DATA       (COM1+0x04)
-#define COM1_IRQ        0
+#define COM1_IRQ        2
 
 #define TIMER0_IRQ       7
 
