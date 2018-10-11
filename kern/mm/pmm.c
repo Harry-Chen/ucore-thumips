@@ -336,8 +336,10 @@ pgdir_alloc_page(pde_t *pgdir, uintptr_t la, uint32_t perm) {
 
 static void
 check_alloc_page(void) {
+  kprintf("checking pmm, errors can be ignored.\n");
   pmm_manager->check();
   kprintf("check_alloc_page() succeeded!\n");
+  kprintf("pmm check passed!\n");
 }
 
 static void
@@ -558,15 +560,13 @@ copy_range(pde_t *to, pde_t *from, uintptr_t start, uintptr_t end, bool share) {
           uint32_t perm = (*ptep & PTE_USER);
           struct Page *page = pte2page(*ptep);
           struct Page *npage=alloc_page();
-          assert(page!=NULL);
-          assert(npage!=NULL);
-          int ret=0;
+          if (page == NULL || npage == NULL) {
+              return -E_NO_MEM;
+          }
           //LAB5:EXERCISE2 2009010989
           //replicate content of page to npage, build the map of phy addr of nage with the linear addr start
           memcpy(page2kva(npage), page2kva(page), PGSIZE);
           page_insert(to, npage, start,perm);
-
-          assert(ret == 0);
         }
         start += PGSIZE;
     } while (start != 0 && start < end);

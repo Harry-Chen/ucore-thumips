@@ -1,6 +1,8 @@
 #include <ulib.h>
 #include <stdio.h>
 
+// if OOM occurred when executing forktest, don't panic
+// try to decrease max_child, or increase the memory size in memlayout.h
 const int max_child = 32;
 
 int

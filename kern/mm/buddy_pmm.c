@@ -114,6 +114,7 @@ buddy_alloc_pages_sub(size_t order) {
             return page;
         }
     }
+    kprintf("Page allocation failed, possibly due to OOM or uninitialized page area.\n");
     return NULL;
 }
 
