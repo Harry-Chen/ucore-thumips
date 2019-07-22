@@ -6,7 +6,7 @@
 #define KERNBASE            0x80000000
 
 #ifdef MACH_FPGA            
-#define KMEMSIZE            (4 << 20)
+#define KMEMSIZE            (128 << 20)
 #else
 #define KMEMSIZE            (32 << 20)                 // 512M the maximum amount of physical memory
 #endif

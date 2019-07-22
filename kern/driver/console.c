@@ -59,7 +59,20 @@ serial_init(void) {
     // Enable rcv interrupts
     outb(COM1 + COM_IER, COM_IER_RDI);
 #elif defined MACH_FPGA
-    //TODO
+    // Turn on the FIFO (8 bytes)
+    outb(COM1 + 0x08, 0x81);
+    // Set speed; requires DLAB latch
+    outb(COM1 + 0x0C, 0x80);
+    outb(COM1 + 0x04, 0x00);
+    outb(COM1 + 0x00, 0x36);
+
+    // 8 data bits, 1 stop bit, parity off; turn off DLAB latch
+    outb(COM1 + 0x0C, 0x03);
+
+    // No modem controls
+    outb(COM1 + 0x10, 0);
+    // Enable rcv interrupts
+    outb(COM1 + 0x04, 0x01);
 #endif
 
     pic_enable(COM1_IRQ);
@@ -71,8 +84,7 @@ serial_putc_sub(int c) {
 #ifdef MACH_QEMU
     outb(COM1 + COM_TX, c);
 #elif defined MACH_FPGA
-    //TODO
-    while( (inw(COM1 + 0x04) & 0x01) == 0 );
+    while( (inw(COM1 + 0x14) & 0x40) == 0 );
     outw(COM1 + 0x00, c & 0xFF);
 #endif
 }
@@ -98,8 +110,7 @@ serial_proc_data(void) {
     }
     c = inb(COM1 + COM_RX);
 #elif defined MACH_FPGA
-    //TODO
-    if( (inw(COM1 + 0x04) & 0x02) == 0)
+    if( (inw(COM1 + 0x14) & 0x01) == 0)
       return -1;
     c = inw(COM1 + 0x00) & 0xFF;
 #endif

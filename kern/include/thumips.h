@@ -75,9 +75,14 @@ outw(uint32_t port, uint32_t data) {
 }
 
 /* board specification */
+#ifdef MACH_QEMU
 #define ISA_BASE        0xbfd00000
 #define COM1            (ISA_BASE+0x3F8)
 #define COM1_IRQ        4
+#elif defined MACH_FPGA
+#define COM1            0xbfd03000
+#define COM1_IRQ        2
+#endif
 
 #define TIMER0_IRQ       7
 
