@@ -12,6 +12,7 @@
 #include <proc.h>
 #include <thumips_tlb.h>
 #include <sched.h>
+#include <sl811.h>
 
 void setup_exception_vector()
 {
@@ -51,6 +52,8 @@ kern_init(void) {
 
     ide_init();
     fs_init();
+
+    usb_sl811_init();
 
     intr_enable();              // enable irq interrupt
     //*(int*)(0x00124) = 0x432;

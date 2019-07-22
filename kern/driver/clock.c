@@ -7,12 +7,10 @@
 
 volatile size_t ticks;
 
-#define TIMER0_INTERVAL  1000000 
-
 static void reload_timer()
 {
   uint32_t counter = read_c0_count();
-  counter += TIMER0_INTERVAL;
+  counter += CP0_TIMER_HZ/1000;
   write_c0_compare(counter);
 }
 

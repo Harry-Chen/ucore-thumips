@@ -54,8 +54,8 @@ INCLUDES  := $(addprefix -I,$(SRC_DIR))
 INCLUDES  += -I$(SRCDIR)/include
 
 # reserve 2MB for user app
-USER_APPLIST     := pwd cat sh ls forktest yield hello faultreadkernel faultread badarg pgdir exit sleep
-INITRD_BLOCK_CNT := 4000 
+USER_APPLIST     := cat sh ls forktest yield faultreadkernel faultread pgdir sleep
+INITRD_BLOCK_CNT := 2000 
 
 ifeq  ($(ON_FPGA), y)
 FPGA_LD_FLAGS += -S
@@ -83,12 +83,21 @@ BUILD_DIR   += $(USER_OBJDIR)
 
 DEPENDS := $(patsubst $(SRCDIR)/%.c, $(DEPDIR)/%.d, $(SRC))
 
-.PHONY: all checkdirs clean 
+
+CONFIG_FILE := .config_$(ON_FPGA)_$(EN_INT)_$(EN_TLB)
+
+.PHONY: all checkdirs clean qemu
 
 all: checkdirs boot/loader.bin obj/ucore-kernel-initrd
 
 $(shell mkdir -p $(DEP_DIR))
 
+$(CONFIG_FILE):
+	@rm -f .config_*
+	touch $@
+
+qemu: obj/ucore-kernel-initrd
+	qemu-system-mipsel -M mipssim -m 32M -nographic -kernel $< -monitor none -serial stdio
 
 obj/ucore-kernel:   $(OBJ) tools/kernel.ld
 	@echo LINK $@
@@ -99,15 +108,15 @@ obj/ucore-kernel-piggy: $(BUILD_DIR)  $(OBJ) $(USER_APP_BINS) tools/kernel.ld
 	$(LD) $(LDFLAGS_SCRIPT) $(OBJ) \
 					$(addsuffix .piggy.o, $(USER_APP_BINS)) -o $@
 
-$(DEPDIR)/%.d: $(SRCDIR)/%.c
+$(DEPDIR)/%.d: $(SRCDIR)/%.c $(CONFIG_FILE)
 	@echo DEP $<
 	@set -e; rm -f $@; \
 		$(CC) -MM -MT "$(OBJDIR)/$*.o $@" $(CFLAGS) $(INCLUDES) $< > $@; 
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c
+$(OBJDIR)/%.o: $(SRCDIR)/%.c $(CONFIG_FILE)
 	$(CC) -c -mips1 $(INCLUDES) $(CFLAGS) $(MACH_DEF) $<  -o $@
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.S
+$(OBJDIR)/%.o: $(SRCDIR)/%.S $(CONFIG_FILE)
 	$(CC) -c -mips32 -D__ASSEMBLY__ $(MACH_DEF) $(INCLUDES) $(CFLAGS) $< -o $@
 
 checkdirs: $(BUILD_DIR) $(DEP_DIR)

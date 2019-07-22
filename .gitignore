@@ -5,5 +5,7 @@ dep/
 *.bin
 *.ub
 boot/loader
+*.d
 tools/mksfs
 .gdb_history
+.config_*
